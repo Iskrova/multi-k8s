@@ -1,0 +1,21 @@
+sudo: required
+services:
+    - docker
+
+before_install:
+    - docker build -t iskrovam/react-test -f ./client/Dockerfile.dev ./client
+
+script:
+    - docker run -e CI=true iskrovam/react-test npm test
+
+after_success:
+    - docker build -t iskrovam/multi-client ./client
+    - docker build -t iskrovam/multi-nginx ./nginx
+    - docker build -t iskrovam/multi-server ./server
+    - docker build -t iskrovam/multi-worker ./worker
+
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_ID" --password-stdin
+    - docker push iskrovam/multi-client
+    - docker push iskrovam/multi-nginx
+    - docker push iskrovam/multi-server
+    - docker push iskrovam/multi-worker
